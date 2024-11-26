@@ -19,7 +19,6 @@ namespace ProductsAPIApp.Controllers
             _context = context;
         }        
         // localhost:5000/api/products =>GET
-        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetProducts()
         {   
@@ -36,6 +35,7 @@ namespace ProductsAPIApp.Controllers
             return Ok(products);
         }
         // localhost:5000/api/products/1 =>GET
+        [Authorize]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int? id)
         {
