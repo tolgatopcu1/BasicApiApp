@@ -1,5 +1,8 @@
+using System.Net.Mail;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using ProductsAPIApp.DTO;
 using ProductsAPIApp.Models;
 
 namespace ProductsAPIApp.Controllers
@@ -16,10 +19,16 @@ namespace ProductsAPIApp.Controllers
             _context = context;
         }        
         // localhost:5000/api/products =>GET
+        [Authorize]
         [HttpGet]
         public async Task<IActionResult> GetProducts()
         {   
-            var products = await _context.Products.ToListAsync();
+            var products = await _context
+                            .Products
+                            .Where(i=>i.IsActive)
+                            .Select(p=> ProductToDTO(p))
+                            .ToListAsync();
+
             if (products==null)
             {
                 return NotFound();
@@ -30,7 +39,11 @@ namespace ProductsAPIApp.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> GetProductById(int? id)
         {
-            var product = await _context.Products.FirstOrDefaultAsync();
+            var product = await _context
+                        .Products
+                        .Where(i=>i.ProductId==id)
+                        .Select(p=> ProductToDTO(p))
+                        .FirstOrDefaultAsync();
 
             if (id==null)
             {
@@ -86,6 +99,18 @@ namespace ProductsAPIApp.Controllers
             await _context.SaveChangesAsync();
             
             return NoContent();
+        }
+
+        private static ProductDTO ProductToDTO(Product p)
+        {
+            var entity = new ProductDTO();
+            if (p!=null)
+            {
+                entity.ProductId = p.ProductId;
+                entity.ProductName = p.ProductName;
+                entity.Price = p.Price;
+            }
+            return entity;
         }
     }
 }
